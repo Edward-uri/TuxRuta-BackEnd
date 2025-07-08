@@ -22,7 +22,9 @@ func main() {
 
 	// 3. Crear router e inicializar rutas DESPUÉS
 	router := gin.Default()
-	routes.SetRoutes(router, infraestructure.CreateUserHandler)
+	routes.SetRoutes(router, infraestructure.CreateUserHandler,
+		infraestructure.DeleteUserHandler, infraestructure.GetUsersHandler,
+		infraestructure.GetUserByIDHandler)
 
 	// 4. Obtener puerto del environment
 	port := os.Getenv("PORT")

@@ -20,7 +20,8 @@ func NewCreateUserHandler(createUserUseCase *application.CreateUserUseCase) *Cre
 func (c *CreateUserHadler) HandleCreateUser(g *gin.Context) {
 	var user entities.Usuario
 	if err := g.ShouldBindJSON(&user); err != nil {
-
+		g.JSON(400, gin.H{"error": "Invalid input data"})
+		return
 	}
 	err := c.CreateUserUseCase.Execute(&user)
 	if err != nil {

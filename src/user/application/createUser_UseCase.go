@@ -18,7 +18,6 @@ func NewCreateUserUseCase(userRepo domain.IUserRepository, passwordService servi
 }
 
 func (uc *CreateUserUseCase) Execute(user *entities.Usuario) error {
-	// Validaciones de negocio
 	if user.Email == "" {
 		return errors.New("email is required")
 	}
@@ -31,17 +30,14 @@ func (uc *CreateUserUseCase) Execute(user *entities.Usuario) error {
 		return errors.New("password must be at least 6 characters")
 	}
 
-	// Hashear password usando el servicio
 	hashedPassword, err := uc.passwordService.HashPassword(user.Password)
 	if err != nil {
 		return err
 	}
 
-	// Preparar usuario para persistencia
 	user.Password = hashedPassword
 	user.Activo = true
 	user.CreadoEn = time.Now()
 
-	// Guardar en repositorio
 	return uc.userRepository.Create(*user)
 }

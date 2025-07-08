@@ -6,6 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetRoutes(router *gin.Engine, createUser *controllers.CreateUserHadler) {
+func SetRoutes(router *gin.Engine, createUser *controllers.CreateUserHadler,
+	deleteUser *controllers.DeleteUserHandler,
+	getUsers *controllers.GetUsersHandler,
+	getUserByID *controllers.GetUserByIDHandler) {
 	router.POST("/user", createUser.HandleCreateUser)
+	router.DELETE("/user/:id", deleteUser.HandleDeleteUser)
+	router.GET("/users", getUsers.HandleGetUsers)
+	router.GET("/user/:id", getUserByID.HandleGetUserByID)
 }
