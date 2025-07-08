@@ -11,22 +11,18 @@ import (
 )
 
 func main() {
-	// 1. Cargar variables de entorno PRIMERO
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Warning: No .env file found")
 	}
 
-	// 2. Inicializar dependencias ANTES de crear las rutas
 	infraestructure.InitDependeciesUser()
 
-	// 3. Crear router e inicializar rutas DESPUÉS
 	router := gin.Default()
 	routes.SetRoutes(router, infraestructure.CreateUserHandler,
 		infraestructure.DeleteUserHandler, infraestructure.GetUsersHandler,
-		infraestructure.GetUserByIDHandler)
+		infraestructure.GetUserByIDHandler, infraestructure.LoginHandler)
 
-	// 4. Obtener puerto del environment
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

@@ -3,6 +3,7 @@ package infraestructure
 import (
 	"database/sql"
 	"main/src/user/domain/entities"
+	"time"
 )
 
 type UserPostgreSQL struct {
@@ -68,9 +69,46 @@ func (r *UserPostgreSQL) GetUserById(id int) (entities.Usuario, error) {
 	var user entities.Usuario
 	if err := row.Scan(&user.ID, &user.Email, &user.Password, &user.Rol, &user.Activo, &user.UltimoAcceso, &user.CreadoEn); err != nil {
 		if err == sql.ErrNoRows {
-			return entities.Usuario{}, nil // No user found
+			return entities.Usuario{}, nil
 		}
 		return entities.Usuario{}, err
 	}
 	return user, nil
+}
+
+func (r *UserPostgreSQL) GetUserByEmail(email string) (*entities.Usuario, error) {
+	query := `SELECT id, email, password, rol, activo, ultimo_acceso, creado_en 
+              FROM usuario WHERE email = $1`
+
+	user := &entities.Usuario{}
+	var ultimoAcceso sql.NullTime
+
+	err := r.db.QueryRow(query, email).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Password,
+		&user.Rol,
+		&user.Activo,
+		&ultimoAcceso,
+		&user.CreadoEn,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if ultimoAcceso.Valid {
+		user.UltimoAcceso = &ultimoAcceso.Time
+	}
+
+	return user, nil
+}
+
+func (r *UserPostgreSQL) UpdateLastAccess(userID int, lastAccess time.Time) error {
+	query := `UPDATE usuario SET ultimo_acceso = $1 WHERE id = $2`
+	_, err := r.db.Exec(query, lastAccess, userID)
+	return err
 }

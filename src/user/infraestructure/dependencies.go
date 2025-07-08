@@ -12,16 +12,20 @@ var (
 	DeleteUserHandler  *controllers.DeleteUserHandler
 	GetUsersHandler    *controllers.GetUsersHandler
 	GetUserByIDHandler *controllers.GetUserByIDHandler
+	LoginHandler       *controllers.LoginHandler // ✅ Nuevo
 )
 
 func InitDependeciesUser() {
 	core.InitPostgres()
 	db := core.GetDB()
 
+	// Servicios
 	passwordService := services.NewBcryptPasswordService()
-
+	jwtService := services.NewJWTService()
+	// Repositorio
 	userRepository := NewUserPostgreSQL(db)
 
+	// Casos de uso existentes
 	createUserUseCase := application.NewCreateUserUseCase(userRepository, passwordService)
 	CreateUserHandler = controllers.NewCreateUserHandler(createUserUseCase)
 
@@ -33,4 +37,7 @@ func InitDependeciesUser() {
 
 	getUserByIdUseCase := application.NewGetUserByIdUseCase(userRepository)
 	GetUserByIDHandler = controllers.NewGetUserByIDHandler(getUserByIdUseCase)
+
+	loginUseCase := application.NewLoginUseCase(userRepository, passwordService, jwtService)
+	LoginHandler = controllers.NewLoginHandler(loginUseCase)
 }
