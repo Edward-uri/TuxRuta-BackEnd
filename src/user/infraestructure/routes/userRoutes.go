@@ -1,16 +1,16 @@
 package routes
 
 import (
-	"main/src/user/infraestructure/controllers"
+	"main/src/user/infraestructure/controller"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetRoutes(router *gin.Engine, createUser *controllers.CreateUserHadler,
-	deleteUser *controllers.DeleteUserHandler,
-	getUsers *controllers.GetUsersHandler,
-	getUserByID *controllers.GetUserByIDHandler,
-	login *controllers.LoginHandler) {
+func SetRoutes(router *gin.Engine, createUser *controller.CreateUserHadler,
+	deleteUser *controller.DeleteUserHandler,
+	getUsers *controller.GetUsersHandler,
+	getUserByID *controller.GetUserByIDHandler,
+	login *controller.LoginHandler) {
 	router.POST("/user", createUser.HandleCreateUser)
 	router.DELETE("/user/:id", deleteUser.HandleDeleteUser)
 	router.GET("/users", getUsers.HandleGetUsers)

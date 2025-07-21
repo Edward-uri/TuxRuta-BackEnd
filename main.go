@@ -2,9 +2,13 @@ package main
 
 import (
 	"log"
-	"main/src/user/infraestructure"
-	"main/src/user/infraestructure/routes"
 	"os"
+
+	"main/src/user/infraestructure"
+	userRoutes "main/src/user/infraestructure/routes"
+
+	colectivo_infraestructure "main/src/colectivo/infraestructure"
+	colectivoRoutes "main/src/colectivo/infraestructure/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -17,18 +21,35 @@ func main() {
 	}
 
 	infraestructure.InitDependeciesUser()
+	colectivo_infraestructure.InitDependeciesColectivo()
 
 	router := gin.Default()
-	routes.SetRoutes(router, infraestructure.CreateUserHandler,
-		infraestructure.DeleteUserHandler, infraestructure.GetUsersHandler,
-		infraestructure.GetUserByIDHandler, infraestructure.LoginHandler)
+
+	userRoutes.SetRoutes(
+		router,
+		infraestructure.CreateUserHandler,
+		infraestructure.DeleteUserHandler,
+		infraestructure.GetUsersHandler,
+		infraestructure.GetUserByIDHandler,
+		infraestructure.LoginHandler,
+	)
+
+	colectivoRoutes.SetColectivoRoutes(
+		router,
+		colectivo_infraestructure.CreateColectivoHandler,
+		colectivo_infraestructure.DeleteColectivoHandler,
+		colectivo_infraestructure.GetColectivosHandler,
+		colectivo_infraestructure.GetColectivoByIDHandler,
+		colectivo_infraestructure.GetColectivoByMatriculaHandler,
+		colectivo_infraestructure.ModifyColectivoHandler,
+		colectivo_infraestructure.JWTService,
+	)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	// 5. Iniciar servidor
 	log.Printf("🚀 Server started at :%s", port)
 	log.Fatal(router.Run(":" + port))
 }

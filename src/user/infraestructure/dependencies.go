@@ -3,16 +3,17 @@ package infraestructure
 import (
 	"main/src/core"
 	"main/src/user/application"
-	"main/src/user/infraestructure/controllers"
+	"main/src/user/infraestructure/controller"
+	controllers "main/src/user/infraestructure/controller"
 	"main/src/user/infraestructure/services"
 )
 
 var (
-	CreateUserHandler  *controllers.CreateUserHadler
-	DeleteUserHandler  *controllers.DeleteUserHandler
-	GetUsersHandler    *controllers.GetUsersHandler
-	GetUserByIDHandler *controllers.GetUserByIDHandler
-	LoginHandler       *controllers.LoginHandler // ✅ Nuevo
+	CreateUserHandler  *controller.CreateUserHadler
+	DeleteUserHandler  *controller.DeleteUserHandler
+	GetUsersHandler    *controller.GetUsersHandler
+	GetUserByIDHandler *controller.GetUserByIDHandler
+	LoginHandler       *controller.LoginHandler
 )
 
 func InitDependeciesUser() {
