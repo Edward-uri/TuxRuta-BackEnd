@@ -78,3 +78,35 @@ coverage.out
 *.tmp
 *.temp
 *.bak
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Archivos de configuración y variables de entorno
+.env
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de logs
+*.log
+
+# Archivos temporales de editores
+*.swp
+*.swo
+*.bak
+
+# Archivos de VS Code
+.vscode/
+
+# Archivos de bases de datos temporales
+*.sqlite3
+
+# Otros archivos que no quieras subir
+.DS_Store
+Thumbs.db

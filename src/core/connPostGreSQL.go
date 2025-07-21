@@ -20,11 +20,11 @@ func InitPostgres() {
 
 	connStr := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		getEnv("DB_HOST", "localhost"),
-		getEnv("DB_PORT", "5432"),
-		getEnv("DB_USER", "postgres"),
+		getEnv("DB_HOST", ""),
+		getEnv("DB_PORT", ""),
+		getEnv("DB_USER", ""),
 		getEnv("DB_PASSWORD", ""),
-		getEnv("DB_NAME", "tuxRuta"),
+		getEnv("DB_NAME", ""),
 	)
 
 	db, err = sql.Open("postgres", connStr)

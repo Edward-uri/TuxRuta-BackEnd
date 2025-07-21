@@ -2,7 +2,7 @@ package services
 
 type JWTService interface {
 	GenerateToken(userID int, email string, rol string) (string, error)
-	ValidateToken(token string) (int, error)
+	ValidateToken(token string) (*TokenClaims, error)
 }
 
 type TokenClaims struct {

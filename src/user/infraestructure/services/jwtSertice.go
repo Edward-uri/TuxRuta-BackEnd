@@ -9,13 +9,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// ✅ Implementación concreta en infraestructura
 type JWTServiceImpl struct {
 	secretKey []byte
 }
 
-// ✅ Constructor que retorna la interfaz del dominio
-func NewJWTService() services.JWTService { // ✅ Cambiar a services.JWTService
+func NewJWTService() services.JWTService {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		secret = "your-secret-key-change-in-production"
@@ -58,8 +56,7 @@ func (s *JWTServiceImpl) GenerateToken(userID int, email, rol string) (string, e
 	return tokenString, nil
 }
 
-// ✅ Implementar ValidateToken
-func (s *JWTServiceImpl) ValidateToken(tokenString string) (int, error) {
+func (s *JWTServiceImpl) ValidateToken(tokenString string) (*services.TokenClaims, error) {
 	claims := &Claims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -70,16 +67,21 @@ func (s *JWTServiceImpl) ValidateToken(tokenString string) (int, error) {
 	})
 
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	if !token.Valid {
-		return 0, errors.New("invalid token")
+		return nil, errors.New("invalid token")
 	}
 
 	if claims.ExpiresAt.Before(time.Now()) {
-		return 0, errors.New("token expired")
+		return nil, errors.New("token expired")
 	}
 
-	return claims.UserID, nil
+	return &services.TokenClaims{
+		UserID: claims.UserID,
+		Email:  claims.Email,
+		Rol:    claims.Rol,
+		Exp:    claims.ExpiresAt.Unix(),
+	}, nil
 }
