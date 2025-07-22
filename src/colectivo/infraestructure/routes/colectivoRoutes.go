@@ -3,7 +3,7 @@ package routes
 import (
 	"main/src/colectivo/infraestructure/controller"
 	"main/src/infraestrucutre/middleware"
-	"main/src/user/application/services" // importa la interfaz JWTService
+	"main/src/user/application/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +16,7 @@ func SetColectivoRoutes(
 	getColectivoByID *controller.GetColectivoByIDHandler,
 	getColectivoByMatricula *controller.GetColectivoByMatriculaHandler,
 	modifyColectivo *controller.ModifyColectivoController,
-	jwtService services.JWTService, // <-- usa la interfaz aquí
+	jwtService services.JWTService,
 ) {
 	auth := middleware.AuthMiddleware(jwtService)
 
