@@ -6,6 +6,8 @@ import (
 
 	colectivo_infraestructure "main/src/colectivo/infraestructure"
 	colectivoRoutes "main/src/colectivo/infraestructure/routes"
+	paradasInfraestructure "main/src/paradas/infraestructure"
+	paradasRoutes "main/src/paradas/infraestructure/routes"
 	rutasInfraestructure "main/src/rutas/infraestructure"
 	rutasRoutes "main/src/rutas/infraestructure/routes"
 	"main/src/user/infraestructure"
@@ -16,6 +18,7 @@ import (
 )
 
 func main() {
+	/*CORS*/
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Warning: No .env file found")
@@ -24,6 +27,8 @@ func main() {
 	infraestructure.InitDependeciesUser()
 	colectivo_infraestructure.InitDependeciesColectivo()
 	rutasInfraestructure.InitDependeciesRuta()
+	paradasInfraestructure.InitDependeciesParada()
+
 	router := gin.Default()
 
 	userRoutes.SetRoutes(
@@ -55,6 +60,16 @@ func main() {
 		rutasInfraestructure.GetRutaByNameHandler,
 		rutasInfraestructure.ModifyRutaHandler,
 		rutasInfraestructure.JWTService,
+	)
+
+	paradasRoutes.SetParadaRoutes(
+		router,
+		paradasInfraestructure.CreateParadaHandler,
+		paradasInfraestructure.DeleteParadaHandler,
+		paradasInfraestructure.GetParadasHandler,
+		paradasInfraestructure.GetParadaByRutaHandler,
+		paradasInfraestructure.ModifyParadaHandler,
+		paradasInfraestructure.JWTService,
 	)
 
 	port := os.Getenv("PORT")

@@ -41,10 +41,8 @@ func (c *CreateRutaHandler) HandleCreateRuta(g *gin.Context) {
 		return
 	}
 
-	// Construye PathData
 	pathData := entities.PathData{Points: request.Points}
 
-	// Llama al caso de uso con los parámetros separados
 	ruta, err := c.CreateRutaUseCase.Execute(request.Nombre, request.Descripcion, pathData, userID)
 	if err != nil {
 		g.JSON(500, gin.H{"error": err.Error()})
