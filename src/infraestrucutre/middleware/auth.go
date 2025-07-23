@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -25,7 +24,6 @@ func AuthMiddleware(jwtService services.JWTService) gin.HandlerFunc {
 		}
 
 		tokenStr := parts[1]
-		fmt.Println("Token recibido:", tokenStr)
 		claims, err := jwtService.ValidateToken(tokenStr)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})

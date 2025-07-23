@@ -22,8 +22,8 @@ func SetRutaRoutes(
 	auth := middleware.AuthMiddleware(jwtService)
 	router.POST("/rutas", auth, createRuta.HandleCreateRuta)
 	router.DELETE("/rutas/:id", auth, deleteRuta.HandleDeleteRuta)
-	router.GET("/rutas", auth, getRutas.HandleGetRutas)
-	router.GET("/rutas/:id", auth, getRutaByID.HandleGetRutaByID)
-	router.GET("/rutas/nombre/:nombre", auth, getRutaByName.HandleGetRutaByNombre)
+	router.GET("/rutas", getRutas.HandleGetRutas)
+	router.GET("/rutas/:id", getRutaByID.HandleGetRutaByID)
+	router.GET("/rutas/nombre/:nombre", getRutaByName.HandleGetRutaByNombre)
 	router.PUT("/rutas/:id", auth, modifyRuta.HandleModifyRuta)
 }
