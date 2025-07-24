@@ -1,8 +1,10 @@
 import pika
 import json
+import asyncio
 from app.models.raw_data import GPSRawData, PassengerRawData
 from pydantic import ValidationError
 from app.core.database import get_connection
+from app.api.websocket import manager
 
 def process_gps_message(data: dict):
     try:
@@ -24,6 +26,17 @@ def process_gps_message(data: dict):
         conn.commit()
         cur.close()
         conn.close()
+
+        # Enviar velocidad por WebSocket
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(
+            manager.broadcast({
+                "type": "gps",
+                "speed_kmh": gps.data.speed_kmh
+            }),
+            loop
+        )
+
     except ValidationError as ve:
         print("❌ Error de validación GPS:", ve)
     except Exception as e:
@@ -52,6 +65,17 @@ def process_passenger_message(data: dict):
         conn.commit()
         cur.close()
         conn.close()
+
+        # Enviar conteo de pasajeros por WebSocket
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(
+            manager.broadcast({
+                "type": "passenger",
+                "passenger_count_current": passenger.data.passenger_count_current
+            }),
+            loop
+        )
+
     except ValidationError as ve:
         print("❌ Error de validación pasajero:", ve)
     except Exception as e:
