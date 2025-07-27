@@ -4,18 +4,12 @@ from app.api.metrics import router as metrics_router
 from app.api.websocket import websocket_endpoint
 
 app = FastAPI()
-app.port = 9000
-# Configura los orígenes permitidos
-origins = [
-    "http://localhost:4200",
-    "https://9jw825mb-9000.usw3.devtunnels.ms",
-    # agrega aquí otros orígenes si los necesitas
-]
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
