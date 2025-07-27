@@ -2,6 +2,7 @@ package controller
 
 import (
 	"main/src/paradas/application"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,16 +18,13 @@ func NewDeleteParadaHandler(deleteParadaUseCase *application.DeleteParadaUseCase
 }
 
 func (c *DeleteParadaHandler) HandleDeleteParada(g *gin.Context) {
-	var request struct {
-		ID int `json:"id"`
-	}
-
-	if err := g.ShouldBindJSON(&request); err != nil {
-		g.JSON(400, gin.H{"error": "Invalid input data"})
+	idParam := g.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		g.JSON(400, gin.H{"error": "Invalid ID format"})
 		return
 	}
-
-	err := c.DeleteParadaUseCase.Execute(request.ID)
+	err = c.DeleteParadaUseCase.Execute(id)
 	if err != nil {
 		g.JSON(500, gin.H{"error": err.Error()})
 		return

@@ -10,4 +10,5 @@ type ParadasRepository interface {
 	ActualizarParada(parada entities.Parada) error
 	EliminarParada(id int) error
 	ObtenerParadasPorRuta(rutaID int) ([]entities.Parada, error)
+	ObtenerParadas() ([]entities.Parada, error)
 }

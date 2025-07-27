@@ -13,23 +13,32 @@ import (
 	"main/src/user/infraestructure"
 	userRoutes "main/src/user/infraestructure/routes"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	/*CORS*/
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Warning: No .env file found")
 	}
 
+	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:4200",
+			"https://9jw825mb-8080.usw3.devtunnels.ms",
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
+
 	infraestructure.InitDependeciesUser()
 	colectivo_infraestructure.InitDependeciesColectivo()
 	rutasInfraestructure.InitDependeciesRuta()
 	paradasInfraestructure.InitDependeciesParada()
-
-	router := gin.Default()
 
 	userRoutes.SetRoutes(
 		router,
@@ -69,6 +78,7 @@ func main() {
 		paradasInfraestructure.GetParadasHandler,
 		paradasInfraestructure.GetParadaByRutaHandler,
 		paradasInfraestructure.ModifyParadaHandler,
+		paradasInfraestructure.GetParadasAllHandler,
 		paradasInfraestructure.JWTService,
 	)
 

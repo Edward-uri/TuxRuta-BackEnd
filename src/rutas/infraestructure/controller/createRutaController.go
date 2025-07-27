@@ -46,6 +46,7 @@ func (c *CreateRutaHandler) HandleCreateRuta(g *gin.Context) {
 	ruta, err := c.CreateRutaUseCase.Execute(request.Nombre, request.Descripcion, pathData, userID)
 	if err != nil {
 		g.JSON(500, gin.H{"error": err.Error()})
+		print("Error creating ruta:", err)
 		return
 	}
 

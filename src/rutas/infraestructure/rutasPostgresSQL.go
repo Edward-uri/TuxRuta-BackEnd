@@ -28,7 +28,7 @@ func (r *RutasPostgreSQL) CreateRuta(ruta entities.Ruta) error {
 	_, err = r.db.Exec(query,
 		ruta.Nombre,
 		ruta.Descripcion,
-		pathDataJSON, // ✅ Usa el JSON serializado
+		pathDataJSON,
 		ruta.Activa,
 		ruta.CreadoPor,
 		ruta.CreadoEn,
@@ -38,12 +38,12 @@ func (r *RutasPostgreSQL) CreateRuta(ruta entities.Ruta) error {
 }
 
 func (r *RutasPostgreSQL) DeleteRuta(id int) error {
-	query := `DELETE FROM rutas WHERE id = $1`
+	query := `DELETE FROM ruta WHERE id = $1`
 	_, err := r.db.Exec(query, id)
 	return err
 }
 func (r *RutasPostgreSQL) ModifyRuta(id int, ruta entities.Ruta) error {
-	query := `UPDATE rutas SET nombre = $1, descripcion = $2, path_data = $3, activa = $4, modificado_por = $5, modificado_en = $6 WHERE id = $7`
+	query := `UPDATE ruta SET nombre = $1, descripcion = $2, path_data = $3, activa = $4, modificado_por = $5, modificado_en = $6 WHERE id = $7`
 	_, err := r.db.Exec(query,
 		ruta.Nombre,
 		ruta.Descripcion,

@@ -88,3 +88,28 @@ func (r *ParadasPostgreSQL) EliminarParada(id int) error {
 	_, err := r.db.Exec(query, id)
 	return err
 }
+
+func (r *ParadasPostgreSQL) ObtenerParadas() ([]entities.Parada, error) {
+	query := `SELECT id, nombre, ubicacion, ruta_id, activa, creado_por, creado_en FROM parada ORDER BY id ASC`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var paradas []entities.Parada
+	for rows.Next() {
+		var parada entities.Parada
+		var ubicacionJSON []byte
+		err := rows.Scan(&parada.ID, &parada.Nombre, &ubicacionJSON, &parada.RutaID, &parada.Activa, &parada.CreadoPor, &parada.CreadoEn)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(ubicacionJSON, &parada.Ubicacion)
+		if err != nil {
+			return nil, err
+		}
+		paradas = append(paradas, parada)
+	}
+	return paradas, nil
+}
