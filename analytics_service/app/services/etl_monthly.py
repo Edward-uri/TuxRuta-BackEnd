@@ -66,8 +66,12 @@ def run_monthly_etl(year: int = None, month: int = None, ruta_id: int = None):
             probabilidad_ocupacion_alta = sum(r[4] for r in rows) / dias if dias else 0
 
             # Intervalos de confianza de velocidad
-            intervalo_confianza_velocidad_min = min(r[5] for r in rows)
-            intervalo_confianza_velocidad_max = max(r[6] for r in rows)
+            # Filtrar valores válidos antes de calcular el mínimo y máximo
+            velocidades_minimas = [r[5] for r in rows if r[5] > 0]
+            velocidades_maximas = [r[6] for r in rows if r[6] > 0]
+
+            intervalo_confianza_velocidad_min = min(velocidades_minimas) if velocidades_minimas else 0
+            intervalo_confianza_velocidad_max = max(velocidades_maximas) if velocidades_maximas else 0
 
             # 3. Insertar o actualizar comparativa mensual
             cur.execute("""
