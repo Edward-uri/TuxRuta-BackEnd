@@ -3,7 +3,7 @@ from datetime import datetime, date
 from collections import Counter
 from app.core.database import get_connection
 
-def run_daily_etl(fecha: date = None):
+def run_daily_etl(fecha: date = None, ruta_id: int = None):
     if fecha is None:
         fecha = datetime.now().date()
 
@@ -13,10 +13,13 @@ def run_daily_etl(fecha: date = None):
         conn = get_connection()
         cur = conn.cursor()
 
-        # 1. Obtener todas las rutas activas
-        cur.execute("SELECT id FROM ruta WHERE activa = true")
-        rutas = [row[0] for row in cur.fetchall()]
-        print(f"Rutas activas encontradas: {rutas}")
+        # 1. Obtener rutas a procesar
+        if ruta_id is not None:
+            rutas = [ruta_id]
+        else:
+            cur.execute("SELECT id FROM ruta WHERE activa = true")
+            rutas = [row[0] for row in cur.fetchall()]
+        print(f"Rutas a procesar: {rutas}")
 
         if not rutas:
             print("⚠️ No hay rutas activas para procesar.")
@@ -24,15 +27,15 @@ def run_daily_etl(fecha: date = None):
             conn.close()
             return
 
-        for ruta_id in rutas:
-            print(f"Procesando ruta {ruta_id}...")
+        for rid in rutas:
+            print(f"Procesando ruta {rid}...")
 
             # 2. Obtener datos crudos de GPS y pasajeros para la ruta y fecha
             cur.execute("""
                 SELECT latitude, longitude, speed_kmh, acceleration_ms2, turn_rate_dps, vehicle_state
                 FROM raw_gps_data
                 WHERE ruta_id = %s AND to_timestamp(timestamp) :: date = %s
-            """, (ruta_id, fecha))
+            """, (rid, fecha))
             gps_rows = cur.fetchall()
 
             cur.execute("""
@@ -40,7 +43,7 @@ def run_daily_etl(fecha: date = None):
                        passenger_count_total, passenger_count_current, timestamp
                 FROM raw_passenger_data
                 WHERE ruta_id = %s AND to_timestamp(timestamp) :: date = %s
-            """, (ruta_id, fecha))
+            """, (rid, fecha))
             passenger_rows = cur.fetchall()
 
             print(f"  Datos GPS encontrados: {len(gps_rows)}")
@@ -120,13 +123,13 @@ def run_daily_etl(fecha: date = None):
                     intervalo_confianza_velocidad_min = EXCLUDED.intervalo_confianza_velocidad_min,
                     intervalo_confianza_velocidad_max = EXCLUDED.intervalo_confianza_velocidad_max
             """, (
-                fecha, ruta_id, pasajeros_total, pasajeros_promedio_por_viaje,
+                fecha, rid, pasajeros_total, pasajeros_promedio_por_viaje,
                 velocidad_promedio, hora_pico, total_viajes, ocupacion_maxima,
                 probabilidad_ocupacion_alta, intervalo_confianza_velocidad_min,
                 intervalo_confianza_velocidad_max
             ))
 
-            print(f"  Resumen diario insertado/actualizado para ruta {ruta_id}")
+            print(f"  Resumen diario insertado/actualizado para ruta {rid}")
 
         conn.commit()
         cur.close()
@@ -134,4 +137,4 @@ def run_daily_etl(fecha: date = None):
         print(f"✅ ETL diario completado para {fecha}")
 
     except Exception as e:
-        print(f"❌ Error en ETL: {e}")
+        print(f"❌ Error durante el ETL: {e}")
