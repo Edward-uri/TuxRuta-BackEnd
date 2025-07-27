@@ -15,6 +15,7 @@ func SetParadaRoutes(
 	getParadas *controller.GetParadaHandler,
 	getParadaByRuta *controller.GetParadasAndRutasHandler,
 	modifyParada *controller.UpdateParadaHandler,
+	getAllParadas *controller.GetParadasAllHandler,
 	jwtService services.JWTService,
 
 ) {
@@ -26,4 +27,5 @@ func SetParadaRoutes(
 	router.GET("/paradas/:id", getParadas.HandleGetParada)
 	router.GET("/paradas/ruta/:ruta_id", getParadaByRuta.HandleGetParadasAndRutas)
 	router.PUT("/paradas/:id", auth, modifyParada.HandleUpdateParada)
+	router.GET("/paradas", auth, getAllParadas.HandleGetParadas)
 }

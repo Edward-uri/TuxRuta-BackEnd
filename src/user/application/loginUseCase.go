@@ -12,13 +12,13 @@ import (
 type LoginUseCase struct {
 	userRepository  domain.IUserRepository
 	passwordService services.PasswordService
-	jwtService      services.JWTService // ✅ Usar interfaz del dominio
+	jwtService      services.JWTService
 }
 
 func NewLoginUseCase(
 	userRepository domain.IUserRepository,
 	passwordService services.PasswordService,
-	jwtService services.JWTService, // ✅ Usar interfaz del dominio
+	jwtService services.JWTService,
 ) *LoginUseCase {
 	return &LoginUseCase{
 		userRepository:  userRepository,

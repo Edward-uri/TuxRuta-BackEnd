@@ -12,6 +12,7 @@ import (
 var (
 	CreateParadaHandler    *controller.CreateParadaHandler
 	DeleteParadaHandler    *controller.DeleteParadaHandler
+	GetParadasAllHandler   *controller.GetParadasAllHandler
 	GetParadasHandler      *controller.GetParadaHandler
 	GetParadaByRutaHandler *controller.GetParadasAndRutasHandler
 	ModifyParadaHandler    *controller.UpdateParadaHandler
@@ -35,12 +36,15 @@ func InitDependeciesParada() {
 
 	modifyParadaUseCase := application.NewUpdateParadaUseCase(paradaRepository)
 
+	getAllParadas := application.NewGetParadasAllUseCase(paradaRepository)
+
 	// Handlers
 	CreateParadaHandler = controller.NewCreateParadaHandler(createParadaUseCase)
 	DeleteParadaHandler = controller.NewDeleteParadaHandler(deleteParadaUseCase)
 	GetParadasHandler = controller.NewGetParadaHandler(getParadasUseCase)
 	GetParadaByRutaHandler = controller.NewGetParadasAndRutasHandler(getParadaByRutaUseCase)
 	ModifyParadaHandler = controller.NewUpdateParadaHandler(modifyParadaUseCase)
+	GetParadasAllHandler = controller.NewGetParadasAllHandler(getAllParadas)
 
 	JWTService = infraestructure_services.NewJWTService()
 }

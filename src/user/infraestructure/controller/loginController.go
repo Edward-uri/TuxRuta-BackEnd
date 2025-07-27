@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"main/src/user/application"
 	"net/http"
 
@@ -44,6 +45,7 @@ func (h *LoginHandler) HandleLogin(c *gin.Context) {
 		c.JSON(statusCode, gin.H{
 			"error": err.Error(),
 		})
+		fmt.Println("Login error:", err)
 		return
 	}
 

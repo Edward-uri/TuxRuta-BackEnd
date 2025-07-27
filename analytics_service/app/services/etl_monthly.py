@@ -3,7 +3,7 @@ from datetime import datetime, date
 from collections import defaultdict
 from app.core.database import get_connection
 
-def run_monthly_etl(year: int = None, month: int = None):
+def run_monthly_etl(year: int = None, month: int = None, ruta_id: int = None):
     if year is None or month is None:
         today = datetime.now().date()
         year = today.year
@@ -15,13 +15,22 @@ def run_monthly_etl(year: int = None, month: int = None):
         conn = get_connection()
         cur = conn.cursor()
 
-        # 1. Obtener todas las rutas activas
-        cur.execute("SELECT id FROM ruta WHERE activa = true")
-        rutas = [row[0] for row in cur.fetchall()]
-        print(f"Rutas activas encontradas: {rutas}")
+        # 1. Obtener rutas a procesar
+        if ruta_id is not None:
+            rutas = [ruta_id]
+        else:
+            cur.execute("SELECT id FROM ruta WHERE activa = true")
+            rutas = [row[0] for row in cur.fetchall()]
+        print(f"Rutas a procesar: {rutas}")
 
-        for ruta_id in rutas:
-            print(f"Procesando ruta {ruta_id}...")
+        if not rutas:
+            print("⚠️ No hay rutas activas para procesar.")
+            cur.close()
+            conn.close()
+            return
+
+        for rid in rutas:
+            print(f"Procesando ruta {rid}...")
 
             # 2. Obtener datos diarios de ese mes y ruta
             cur.execute("""
@@ -29,11 +38,11 @@ def run_monthly_etl(year: int = None, month: int = None):
                        probabilidad_ocupacion_alta, intervalo_confianza_velocidad_min, intervalo_confianza_velocidad_max
                 FROM resumen_diario_ruta
                 WHERE ruta_id = %s AND EXTRACT(YEAR FROM fecha) = %s AND EXTRACT(MONTH FROM fecha) = %s
-            """, (ruta_id, year, month))
+            """, (rid, year, month))
             rows = cur.fetchall()
 
             if not rows:
-                print(f"  No hay datos diarios para ruta {ruta_id} en este mes.")
+                print(f"  No hay datos diarios para ruta {rid} en este mes.")
                 continue
 
             dias = len(rows)
@@ -46,12 +55,12 @@ def run_monthly_etl(year: int = None, month: int = None):
             # Mejor día de la semana (por promedio de pasajeros)
             dias_semana = defaultdict(list)
             for r in rows:
-                dia_semana = r[0].isoweekday()  # r[0] = fecha
-                dias_semana[dia_semana].append(r[1])  # r[1] = pasajeros_total
+                dia_semana = r[0].isoweekday()
+                dias_semana[dia_semana].append(r[1])
             mejor_dia_semana = max(dias_semana, key=lambda d: sum(dias_semana[d])/len(dias_semana[d]))
 
             # Peor rendimiento día (fecha con menos pasajeros)
-            peor_rendimiento_dia = min(rows, key=lambda r: r[1])[0]  # r[0] = fecha
+            peor_rendimiento_dia = min(rows, key=lambda r: r[1])[0]
 
             # Probabilidad ocupación alta (promedio mensual)
             probabilidad_ocupacion_alta = sum(r[4] for r in rows) / dias if dias else 0
@@ -78,13 +87,13 @@ def run_monthly_etl(year: int = None, month: int = None):
                     intervalo_confianza_velocidad_min = EXCLUDED.intervalo_confianza_velocidad_min,
                     intervalo_confianza_velocidad_max = EXCLUDED.intervalo_confianza_velocidad_max
             """, (
-                month, year, ruta_id, pasajeros_promedio_dia, pasajeros_total_mes,
+                month, year, rid, pasajeros_promedio_dia, pasajeros_total_mes,
                 mejor_dia_semana, peor_rendimiento_dia, velocidad_promedio_mes,
                 probabilidad_ocupacion_alta, intervalo_confianza_velocidad_min,
                 intervalo_confianza_velocidad_max
             ))
 
-            print(f"  Comparativa mensual insertada/actualizada para ruta {ruta_id}")
+            print(f"  Comparativa mensual insertada/actualizada para ruta {rid}")
 
         conn.commit()
         cur.close()
