@@ -1,16 +1,56 @@
+import time
 import pika
 import json
 import asyncio
-from app.models.raw_data import GPSRawData, PassengerRawData
+from app.models.raw_data import GPSRawData
 from pydantic import ValidationError
 from app.core.database import get_connection
 from app.api.websocket import manager
 
+def publish_ws_update(data):
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            host='13.219.25.247',
+            credentials=pika.PlainCredentials('guest', 'guest')
+        )
+    )
+    channel = connection.channel()
+    channel.queue_declare(queue='ws_passenger_updates', durable=True)
+    channel.basic_publish(
+        exchange='',
+        routing_key='ws_passenger_updates',
+        body=json.dumps(data)
+    )
+    connection.close()
+
 def process_gps_message(data: dict):
     try:
+        # Asignar ruta_id por defecto si falta
+        data['timestamp'] = int(time.time())
+        if 'ruta_id' not in data:
+            data['ruta_id'] = 1
+
+        # Si falta 'data', crea el diccionario vacío
+        if 'data' not in data:
+            data['data'] = {}
+
+        # Convertir timestamp a int si es floatya
+        if 'timestamp' in data:
+            data['timestamp'] = int(data['timestamp'])
+
+        # Si speed_kmh es None, ponlo en 0.0
+        if data['data'].get('speed_kmh') is None:
+            data['data']['speed_kmh'] = 0.0
+
+        for key in ['latitude', 'longitude', 'acceleration_ms2', 'turn_rate_dps']:
+            if data['data'].get(key) is None:
+                data['data'][key] = 0.0
+
+        if data['data'].get('vehicle_state') is None:
+            data['data']['vehicle_state'] = "DESCONOCIDO"
+
         gps = GPSRawData(**data)
         print("✅ GPS válido:", gps)
-        # Guardar en BD
         conn = get_connection()
         cur = conn.cursor()
         cur.execute("""
@@ -27,56 +67,56 @@ def process_gps_message(data: dict):
         cur.close()
         conn.close()
 
-        # Enviar velocidad por WebSocket
-        loop = asyncio.get_event_loop()
+        # Publicar en la cola para WebSocket
+        publish_ws_update({
+            "type": "gps",
+            "speed_kmh": gps.data.speed_kmh,
+            "latitude": gps.data.latitude,
+            "longitude": gps.data.longitude
+        })
+
+        # (Opcional) Broadcast local si tienes clientes WebSocket en este proceso
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         asyncio.run_coroutine_threadsafe(
             manager.broadcast({
                 "type": "gps",
-                "speed_kmh": gps.data.speed_kmh
+                "speed_kmh": gps.data.speed_kmh,
+                "latitude": gps.data.latitude,
+                "longitude": gps.data.longitude
             }),
             loop
         )
-
     except ValidationError as ve:
         print("❌ Error de validación GPS:", ve)
     except Exception as e:
         print("❌ Error guardando GPS en BD:", e)
 
-def process_passenger_message(data: dict):
-    try:
-        passenger = PassengerRawData(**data)
-        print("✅ Pasajero válido:", passenger)
-        # Guardar en BD
-        conn = get_connection()
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO raw_passenger_data (
-                timestamp, device_id, ruta_id, event, sensor_distance_mm,
-                nn_passenger_detected, confidence, passenger_count_delta,
-                passenger_count_total, passenger_count_current
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            passenger.timestamp, passenger.device_id, passenger.ruta_id,
-            passenger.data.event, passenger.data.sensor_distance_mm,
-            passenger.data.nn_passenger_detected, passenger.data.confidence,
-            passenger.data.passenger_count_delta, passenger.data.passenger_count_total,
-            passenger.data.passenger_count_current
-        ))
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        # Enviar conteo de pasajeros por WebSocket
-        loop = asyncio.get_event_loop()
-        asyncio.run_coroutine_threadsafe(
-            manager.broadcast({
-                "type": "passenger",
-                "passenger_count_current": passenger.data.passenger_count_current
-            }),
-            loop
+def start_gps_consumer():
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            host='13.219.25.247',
+            credentials=pika.PlainCredentials('guest', 'guest')
         )
+    )
+    channel = connection.channel()
+    channel.queue_declare(queue='hybrid_49269307234447', durable=True)
 
-    except ValidationError as ve:
-        print("❌ Error de validación pasajero:", ve)
-    except Exception as e:
-        print("❌ Error guardando pasajero en BD:", e)
+    def callback_gps(ch, method, properties, body):
+        try:
+            data = json.loads(body)
+            process_gps_message(data)
+            print("✅ Mensaje GPS recibido:", data)
+        except Exception as e:
+            print("❌ Error procesando mensaje GPS:", e)
+
+    channel.basic_consume(queue='hybrid_49269307234447', on_message_callback=callback_gps, auto_ack=True)
+
+    print(" [*] Esperando mensajes en hybrid_49269307234447. Para salir presiona CTRL+C")
+    try:
+        channel.start_consuming()
+    except KeyboardInterrupt:
+        print(" [*] Consumidor detenido manualmente.")

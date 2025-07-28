@@ -5,6 +5,7 @@ from app.services.etl import run_daily_etl
 from app.services.etl_monthly import run_monthly_etl
 from calendar import monthrange
 import statistics
+from app.models.raw_data import GPSRawData, PassengerRawData
 
 router = APIRouter()
 
@@ -142,3 +143,111 @@ def metricas_rango(
         cur.close()
         conn.close()
         return {"error": f"Error al obtener datos: {e}"}
+    
+    
+@router.get("/resumen-diario-ruta")
+def get_all_resumen_diario_ruta():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT fecha, ruta_id, colectivo_id, pasajeros_total, pasajeros_promedio_por_viaje,
+               velocidad_promedio, hora_pico, total_viajes, ocupacion_maxima,
+               probabilidad_ocupacion_alta, intervalo_confianza_velocidad_min, intervalo_confianza_velocidad_max
+        FROM resumen_diario_ruta
+        ORDER BY fecha, ruta_id
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    resultados = []
+    for row in rows:
+        resultados.append({
+            "fecha": row[0].isoformat() if row[0] else None,
+            "ruta_id": row[1],
+            "colectivo_id": row[2],
+            "pasajeros_total": row[3],
+            "pasajeros_promedio_por_viaje": float(row[4]) if row[4] is not None else 0.0,
+            "velocidad_promedio": float(row[5]) if row[5] is not None else 0.0,
+            "hora_pico": row[6],
+            "total_viajes": row[7],
+            "ocupacion_maxima": float(row[8]) if row[8] is not None else 0.0,
+            "probabilidad_ocupacion_alta": float(row[9]) if row[9] is not None else 0.0,
+            "intervalo_confianza_velocidad_min": float(row[10]) if row[10] is not None else 0.0,
+            "intervalo_confianza_velocidad_max": float(row[11]) if row[11] is not None else 0.0,
+        })
+    return resultados
+
+
+@router.get("/comparativa-mensual")
+def get_all_comparativa_mensual():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, mes, año, ruta_id, colectivo_id, pasajeros_promedio_dia, pasajeros_total_mes,
+               mejor_dia_semana, peor_rendimiento_dia, velocidad_promedio_mes,
+               probabilidad_ocupacion_alta, intervalo_confianza_velocidad_min, intervalo_confianza_velocidad_max
+        FROM comparativa_mensual
+        ORDER BY año DESC, mes DESC, ruta_id
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    resultados = []
+    for row in rows:
+        resultados.append({
+            "id": row[0],
+            "mes": row[1],
+            "año": row[2],
+            "ruta_id": row[3],
+            "colectivo_id": row[4],
+            "pasajeros_promedio_dia": float(row[5]) if row[5] is not None else 0.0,
+            "pasajeros_total_mes": row[6] if row[6] is not None else 0,
+            "mejor_dia_semana": row[7],
+            "peor_rendimiento_dia": row[8].isoformat() if row[8] else None,
+            "velocidad_promedio_mes": float(row[9]) if row[9] is not None else 0.0,
+            "probabilidad_ocupacion_alta": float(row[10]) if row[10] is not None else 0.0,
+            "intervalo_confianza_velocidad_min": float(row[11]) if row[11] is not None else 0.0,
+            "intervalo_confianza_velocidad_max": float(row[12]) if row[12] is not None else 0.0,
+        })
+    return resultados
+
+
+@router.post("/raw-gps-data")
+def post_raw_gps_data(data: GPSRawData):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO raw_gps_data (
+            timestamp, device_id, ruta_id, sensor_type,
+            latitude, longitude, speed_kmh, acceleration_ms2, turn_rate_dps, vehicle_state
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (
+        data.timestamp, data.device_id, data.ruta_id, data.sensor_type,
+        data.data.latitude, data.data.longitude, data.data.speed_kmh,
+        data.data.acceleration_ms2, data.data.turn_rate_dps, data.data.vehicle_state
+    ))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"message": "Dato GPS crudo insertado correctamente"}
+
+@router.post("/raw-passenger-data")
+def post_raw_passenger_data(data: PassengerRawData):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO raw_passenger_data (
+            timestamp, device_id, ruta_id, sensor_type,
+            event, sensor_distance_mm, nn_passenger_detected, confidence,
+            passenger_count_delta, passenger_count_total, passenger_count_current
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (
+        data.timestamp, data.device_id, data.ruta_id, data.sensor_type,
+        data.data.event, data.data.sensor_distance_mm, data.data.nn_passenger_detected,
+        data.data.confidence, data.data.passenger_count_delta,
+        data.data.passenger_count_total, data.data.passenger_count_current
+    ))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"message": "Dato de pasajero crudo insertado correctamente"}
