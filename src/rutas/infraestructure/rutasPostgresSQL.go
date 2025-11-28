@@ -1,6 +1,7 @@
 package infraestructure
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"main/src/rutas/domain/entities"
@@ -55,11 +56,11 @@ func (r *RutasPostgreSQL) ModifyRuta(id int, ruta entities.Ruta) error {
 	)
 	return err
 }
-func (r *RutasPostgreSQL) GetRutas() ([]entities.Ruta, error) {
+func (r *RutasPostgreSQL) GetRutas(ctx context.Context) ([]entities.Ruta, error) {
 	query := `SELECT id, nombre, descripcion, path_data, activa, creado_por, modificado_por, creado_en, modificado_en 
               FROM ruta WHERE activa = true ORDER BY creado_en ASC`
 
-	rows, err := r.db.Query(query)
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}

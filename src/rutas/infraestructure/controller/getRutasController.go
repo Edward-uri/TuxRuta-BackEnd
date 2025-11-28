@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"context"
+	"main/src/core"
 	"main/src/rutas/application"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +20,20 @@ func NewGetRutasHandler(getRutasUseCase *application.GetRutasUseCase) *GetRutasH
 }
 
 func (c *GetRutasHandler) HandleGetRutas(g *gin.Context) {
-	rutas, err := c.GetRutasUseCase.Execute()
+	// 1. Intentar obtener de caché
+	cache := core.GetCacheService()
+	cacheKey := "rutas_all"
+	
+	if cachedRutas, found := cache.Get(cacheKey); found {
+		g.JSON(200, cachedRutas)
+		return
+	}
+
+	// Crear contexto con timeout de 5 segundos
+	ctx, cancel := context.WithTimeout(g.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	rutas, err := c.GetRutasUseCase.Execute(ctx)
 	if err != nil {
 		g.JSON(500, gin.H{"error": "Failed to retrieve rutas"})
 		return
@@ -26,5 +42,9 @@ func (c *GetRutasHandler) HandleGetRutas(g *gin.Context) {
 		g.JSON(404, gin.H{"message": "No rutas found"})
 		return
 	}
+
+	// 2. Guardar en caché por 1 minuto
+	cache.Set(cacheKey, rutas, 1*time.Minute)
+
 	g.JSON(200, rutas)
 }
