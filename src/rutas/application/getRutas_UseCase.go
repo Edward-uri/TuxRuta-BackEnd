@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"errors"
 	"main/src/rutas/domain"
 	"main/src/rutas/domain/entities"
@@ -14,8 +15,8 @@ func NewGetRutasUseCase(rutaRepo domain.IRutasRepository) *GetRutasUseCase {
 	return &GetRutasUseCase{rutaRepository: rutaRepo}
 }
 
-func (uc *GetRutasUseCase) Execute() ([]entities.Ruta, error) {
-	rutas, err := uc.rutaRepository.GetRutas()
+func (uc *GetRutasUseCase) Execute(ctx context.Context) ([]entities.Ruta, error) {
+	rutas, err := uc.rutaRepository.GetRutas(ctx)
 	if err != nil {
 		return nil, err
 	}

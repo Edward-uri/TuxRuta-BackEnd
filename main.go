@@ -14,6 +14,7 @@ import (
 	userRoutes "main/src/user/infraestructure/routes"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -28,12 +29,15 @@ func main() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:4200",
-			"https://9jw825mb-8080.usw3.devtunnels.ms",
+			"http://3.228.56.73:8080",
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
+
+	// Middleware de compresión GZIP
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	infraestructure.InitDependeciesUser()
 	colectivo_infraestructure.InitDependeciesColectivo()
@@ -87,6 +91,6 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("🚀 Server started at :%s", port)
+	log.Printf("Server started at :%s", port)
 	log.Fatal(router.Run(":" + port))
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -37,6 +38,12 @@ func InitPostgres() {
 	}
 
 	log.Printf("Connected to PostgreSQL database: %s", getEnv("DB_NAME", "tuxRuta"))
+
+	// Configuración del pool de conexiones
+	db.SetMaxOpenConns(25)                  // Máximo de conexiones abiertas
+	db.SetMaxIdleConns(5)                   // Conexiones idle en el pool
+	db.SetConnMaxLifetime(5 * time.Minute)  // Tiempo de vida máximo de una conexión
+	db.SetConnMaxIdleTime(10 * time.Minute) // Tiempo máximo que una conexión puede estar idle
 }
 
 func GetDB() *sql.DB {
