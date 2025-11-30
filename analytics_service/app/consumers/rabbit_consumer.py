@@ -10,7 +10,7 @@ from app.api.websocket import manager
 def publish_ws_update(data):
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
-            host='13.219.25.247',
+            host='34.233.205.241',
             credentials=pika.PlainCredentials('guest', 'guest')
         )
     )
@@ -28,7 +28,7 @@ def process_gps_message(data: dict):
         # Asignar ruta_id por defecto si falta
         data['timestamp'] = int(time.time())
         if 'ruta_id' not in data:
-            data['ruta_id'] = 1
+            data['ruta_id'] = 2  # Ruta "Suchi"
 
         # Si falta 'data', crea el diccionario vacío
         if 'data' not in data:
@@ -98,7 +98,7 @@ def process_gps_message(data: dict):
 def start_gps_consumer():
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
-            host='13.219.25.247',
+            host='34.233.205.241',
             credentials=pika.PlainCredentials('guest', 'guest')
         )
     )

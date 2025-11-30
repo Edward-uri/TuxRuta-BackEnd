@@ -10,7 +10,7 @@ from app.api.websocket import manager
 def publish_ws_update(data):
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
-            host='13.219.25.247',
+            host='34.233.205.241',
             credentials=pika.PlainCredentials('guest', 'guest')
         )
     )
@@ -29,7 +29,7 @@ def process_passenger_message(data: dict):
         data['timestamp'] = int(time.time())
 
         if 'ruta_id' not in data:
-            data['ruta_id'] = 1
+            data['ruta_id'] = 2  # Ruta "Suchi"
         passenger = PassengerRawData(**data)
         print("✅ Pasajero válido:", passenger)
         conn = get_connection()
@@ -78,7 +78,7 @@ def process_passenger_message(data: dict):
 def start_passenger_consumer():
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
-            host='13.219.25.247',
+            host='34.233.205.241',
             credentials=pika.PlainCredentials('guest', 'guest')
         )
     )
