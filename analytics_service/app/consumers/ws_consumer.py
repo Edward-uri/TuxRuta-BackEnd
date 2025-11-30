@@ -7,7 +7,7 @@ from app.api.websocket import manager
 def ws_rabbitmq_consumer(loop):
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
-            host='13.219.25.247',
+            host='34.233.205.241',
             credentials=pika.PlainCredentials('guest', 'guest')
         )
     )
