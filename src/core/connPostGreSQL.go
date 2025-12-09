@@ -39,7 +39,6 @@ func InitPostgres() {
 
 	log.Printf("Connected to PostgreSQL database: %s", getEnv("DB_NAME", "tuxRuta"))
 
-	// Configuración del pool de conexiones
 	db.SetMaxOpenConns(25)                  // Máximo de conexiones abiertas
 	db.SetMaxIdleConns(5)                   // Conexiones idle en el pool
 	db.SetConnMaxLifetime(5 * time.Minute)  // Tiempo de vida máximo de una conexión

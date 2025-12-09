@@ -22,7 +22,6 @@ var (
 func GetCacheService() *CacheService {
 	once.Do(func() {
 		instance = &CacheService{}
-		// Iniciar rutina de limpieza (opcional, pero recomendada para evitar fugas de memoria a largo plazo)
 		go instance.startCleanup()
 	})
 	return instance
