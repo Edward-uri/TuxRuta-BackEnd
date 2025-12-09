@@ -20,7 +20,6 @@ func NewGetRutasHandler(getRutasUseCase *application.GetRutasUseCase) *GetRutasH
 }
 
 func (c *GetRutasHandler) HandleGetRutas(g *gin.Context) {
-	// 1. Intentar obtener de caché
 	cache := core.GetCacheService()
 	cacheKey := "rutas_all"
 	
@@ -29,7 +28,6 @@ func (c *GetRutasHandler) HandleGetRutas(g *gin.Context) {
 		return
 	}
 
-	// Crear contexto con timeout de 5 segundos
 	ctx, cancel := context.WithTimeout(g.Request.Context(), 5*time.Second)
 	defer cancel()
 
@@ -43,7 +41,6 @@ func (c *GetRutasHandler) HandleGetRutas(g *gin.Context) {
 		return
 	}
 
-	// 2. Guardar en caché por 1 minuto
 	cache.Set(cacheKey, rutas, 1*time.Minute)
 
 	g.JSON(200, rutas)

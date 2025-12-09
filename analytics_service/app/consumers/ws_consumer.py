@@ -16,12 +16,12 @@ def ws_rabbitmq_consumer(loop):
     
     def callback(ch, method, properties, body):
         data = json.loads(body)
-        print("🟢 Recibido de RabbitMQ para WS:", data)
+        print("ecibido de RabbitMQ para WS:", data)
         print("Conexiones activas antes de broadcast:", len(manager.active_connections))
         asyncio.run_coroutine_threadsafe(manager.broadcast(data), loop)
 
     channel.basic_consume(queue='ws_passenger_updates', on_message_callback=callback, auto_ack=True)
-    print(" [*] WebSocket suscrito a ws_passenger_updates")
+    print(" WebSocket suscrito a ws_passenger_updates")
     channel.start_consuming()
 
 def start_ws_rabbitmq_consumer(loop):
